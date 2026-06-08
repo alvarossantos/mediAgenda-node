@@ -263,7 +263,10 @@ app.get('/api/agendamentos/pesquisar/filtros', function(req, res){
 // ===========================
 //  ENDPOINTS DE MEDICOS
 // ===========================
-// listar todos os medicos
+// 1. Listar todos os médicos
+// Exemplo de teste no terminal:
+// curl -X GET "http://localhost:3000/api/medicos"
+// Postman GET URL: http://localhost:3000/api/medicos
 app.get('/api/medicos', function(req, res) {
     var sql = "SELECT * FROM medicos ORDER BY nome";
     conexao.query(sql, function(erro, resultados){
@@ -279,7 +282,10 @@ app.get('/api/medicos', function(req, res) {
     });
 });
 
-// buscar medico por ID
+// 2. Buscar médico por ID
+// Exemplo de teste no terminal (substitua o 1 pelo ID desejado):
+// curl -X GET "http://localhost:3000/api/medicos/1"
+// Postman GET URL: http://localhost:3000/api/medicos/1
 app.get('/api/medicos/:id', function(req, res){
     var id = req.params.id;
     var sql = "SELECT * FROM medicos WHERE id = ?";
@@ -303,7 +309,20 @@ app.get('/api/medicos/:id', function(req, res){
     });
 });
 
-// criar novo medico
+// 3. Criar novo médico
+// Exemplo de teste no terminal:
+// curl -X POST "http://localhost:3000/api/medicos" -H "Content-Type: application/json" -d 
+// "{\"nome\":\"Dr. João Silva\",\"crm\":\"CRM-MG 12345\",\"especialidade_id\":1,\"telefone\":\"(35) 99999-9999\",
+// \"email\":\"joao@clinica.com\",\"status\":\"Ativo\"}"
+// Postman POST URL: http://localhost:3000/api/medicos
+// {   
+//      "nome": "Dr. João Silva",   
+//      "crm": "CRM-MG 12345",   
+//      "especialidade_id": 1,   
+//      "telefone": "(35) 99999-9999",   
+//      "email": "joao@clinica.com",   
+//      "status": "Ativo" 
+// }
 app.post('/api/medicos', function(req, res){
     var nome = req.body.nome;
     var crm = req.body.crm;
@@ -338,15 +357,22 @@ app.post('/api/medicos', function(req, res){
     });
 });
 
-// atualizar medico
+// 4. Atualizar médico (Aceita atualização parcial)
+// Exemplo de teste no terminal (atualizando apenas telefone e status do médico ID 1):
+// curl -X PUT "http://localhost:3000/api/medicos/1" -H "Content-Type: application/json" -d "{\"telefone\":\"(35) 98888-7777\",\"status\":\"Inativo\"}"
+// Postman PUT URL: http://localhost:3000/api/medicos/1
+// {
+//      "telefone": "(35) 98888-7777",
+//      "status": "Inativo"
+// }
 app.put('/api/medicos/:id', function(req, res){
     var id = req.params.id;
 
-    // 1. Criamos arrays vazios para guardar os trechos de SQL e os valores correspondentes
+    // Criamos arrays vazios para guardar os trechos de SQL e os valores correspondentes
     var campos = [];
     var valores = [];
 
-    // 2. Verificamos cada campo. Se ele foi enviado no body, adicionamos na lista
+    // Verificamos cada campo. Se ele foi enviado no body, adicionamos na lista
     if (req.body.nome !== undefined) {
         campos.push("nome = ?");
         valores.push(req.body.nome);
@@ -372,7 +398,7 @@ app.put('/api/medicos/:id', function(req, res){
         valores.push(req.body.status);
     }
 
-    // 3. Validação: Se o array estiver vazio, significa que o usuário não enviou nenhum dado para atualizar
+    // Validação: Se o array estiver vazio, significa que o usuário não enviou nenhum dado para atualizar
     if (campos.length === 0) {
         return res.status(400).json({
             erro: true,
@@ -401,12 +427,15 @@ app.put('/api/medicos/:id', function(req, res){
 
         res.json({
             erro: false,
-            mensagem: 'Medico atualizado com sucesso!'
+            mensagem: 'Medico updated com sucesso!'
         });
     });
 });
 
-// deletar medico por ID
+// 5. Deletar médico por ID
+// Exemplo de teste no terminal (substitua o 1 pelo ID desejado):
+// curl -X DELETE "http://localhost:3000/api/medicos/1"
+// Postman DELETE URL: http://localhost:3000/api/medicos/1
 app.delete('/api/medicos/:id', function(req, res){
     var id = req.params.id;
     var sql = "DELETE FROM medicos WHERE id = ?";
@@ -435,7 +464,10 @@ app.delete('/api/medicos/:id', function(req, res){
 // ===========================
 //  ENDPOINTS DE ESPECIALIDADES
 // ===========================
-// listar todas as especialidades
+// 1. Listar todas as especialidades
+// Exemplo de teste no terminal:
+// curl -X GET "http://localhost:3000/api/especialidades"
+// Postman GET URL: http://localhost:3000/api/especialidades
 app.get('/api/especialidades', function(req, res){
     var sql = "SELECT * FROM especialidades ORDER BY nome";
     conexao.query(sql, function(erro, resultados){
@@ -450,7 +482,10 @@ app.get('/api/especialidades', function(req, res){
     });
 });
 
-// buscar especialidade por ID
+// 2. Buscar especialidade por ID
+// Exemplo de teste no terminal (substitua o 1 pelo ID desejado):
+// curl -X GET "http://localhost:3000/api/especialidades/1"
+// Postman GET URL: http://localhost:3000/api/especialidades/1
 app.get('/api/especialidades/:id', function(req, res){
     var id = req.params.id;
     var sql = "SELECT * FROM especialidades WHERE id = ?";
@@ -473,7 +508,13 @@ app.get('/api/especialidades/:id', function(req, res){
     });
 });
 
-// criar especialidade
+// 3. Criar especialidade
+// Exemplo de teste no terminal:
+// curl -X POST "http://localhost:3000/api/especialidades" -H "Content-Type: application/json" -d "{\"nome\":\"Neurologia\"}"
+// Postman POST URL: http://localhost:3000/api/especialidades
+// {
+//      "nome": "Neurologia"
+// }
 app.post('/api/especialidades', function(req, res){
     var nome = req.body.nome;
 
@@ -495,7 +536,7 @@ app.post('/api/especialidades', function(req, res){
                     mensagem: 'Esta especialidade já está cadastrada.'
                 });
             }
-            
+
             return res.status(500).json({
                 erro: true,
                 mensagem: 'Erro ao criar especialidade.'
@@ -510,7 +551,13 @@ app.post('/api/especialidades', function(req, res){
     });
 });
 
-// atualizar especialidade
+// 4. Atualizar especialidade
+// Exemplo de teste no terminal (substitua o 1 pelo ID desejado):
+// curl -X PUT "http://localhost:3000/api/especialidades/1" -H "Content-Type: application/json" -d "{\"nome\":\"Cardiologia\"}"
+// Postman PUT URL: http://localhost:3000/api/especialidades/1
+// {
+//      "nome": "Cardiologia"
+// }
 app.put('/api/especialidades/:id', function(req, res){
     var id = req.params.id;
     var nome = req.body.nome;
@@ -546,7 +593,10 @@ app.put('/api/especialidades/:id', function(req, res){
     });
 });
 
-// excluir especialidade
+// 5. Excluir especialidade
+// Exemplo de teste no terminal (substitua o 1 pelo ID desejado):
+// curl -X DELETE "http://localhost:3000/api/especialidades/1"
+// Postman DELETE URL: http://localhost:3000/api/especialidades/1
 app.delete('/api/especialidades/:id', function(req, res){
     var id = req.params.id;
     var sql = "DELETE FROM especialidades WHERE id = ?";
@@ -555,6 +605,7 @@ app.delete('/api/especialidades/:id', function(req, res){
             console.log('Erro ao excluir especialidade:', erro);
             if(erro.code === 'ER_ROW_IS_REFERENCED_2' || erro.code === 'ER_ROW_IS_REFERENCED') {
                 return res.status(400).json({
+                    erro: true,
                     mensagem: 'Não é possível excluir esta especialidade pois existem médicos vinculados a ela.'
                 });
             }
