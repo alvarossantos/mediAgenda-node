@@ -14,6 +14,7 @@ app.use(express.static(path.join(
     __dirname, 'public'
 )));
 
+/*
 const consultas = [
     {
         id: 1,
@@ -43,7 +44,11 @@ const consultas = [
         status: 'confirmado'
     }
 ];
+*/
 
+// ===========================
+//  ENDPOINTS DE AGENDAMENTOS 
+// ===========================
 app.get('/api/consultas', function(req, res){
     //res.json(consultas);
     var sql = "SELECT " +
@@ -252,6 +257,323 @@ app.get('/api/agendamentos/pesquisar/filtros', function(req, res){
             return;
         }
         res.json(resultados);
+    });
+});
+
+// ===========================
+//  ENDPOINTS DE MEDICOS
+// ===========================
+// listar todos os medicos
+app.get('/api/medicos', function(req, res) {
+    var sql = "SELECT * FROM medicos ORDER BY nome";
+    conexao.query(sql, function(erro, resultados){
+        if(erro){
+            console.log('Erro ao buscar medicos:', erro);
+            console.log(erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao buscar medicos no banco de dados.'
+            });
+        }
+        res.json(resultados);
+    });
+});
+
+// buscar medico por ID
+app.get('/api/medicos/:id', function(req, res){
+    var id = req.params.id;
+    var sql = "SELECT * FROM medicos WHERE id = ?";
+    conexao.query(sql, [id], function(erro, resultados){
+        if(erro) {
+            console.log('Erro ao buscar medico:', erro);
+            console.log(erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao buscar medico no banco de dados.'
+            });
+        }
+
+        if(resultados.length === 0) {
+            return res.status(404).json({
+                erro: true,
+                mensagem: 'Medico não encontrado.'
+            });
+        }
+        res.json(resultados[0]);
+    });
+});
+
+// criar novo medico
+app.post('/api/medicos', function(req, res){
+    var nome = req.body.nome;
+    var crm = req.body.crm;
+    var especialidade_id = req.body.especialidade_id;
+    var telefone = req.body.telefone;
+    var email = req.body.email;
+    var status = req.body.status;
+
+    if(!nome || !crm || !especialidade_id || !telefone || !email) {
+        return res.status(400).json({
+            erro: true,
+            mensagem: 'Preencha todos os campos.'
+        });
+    }
+
+    var sql = "INSERT INTO medicos (nome, crm, especialidade_id, telefone, email, status) VALUES (?, ?, ?, ?, ?, ?)";
+    var valores = [nome, crm, especialidade_id, telefone, email, status];
+
+    conexao.query(sql, valores, function(erro, resultado){
+        if(erro){
+            console.log('Erro ao cadastrar medico:', erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao cadastrar medico no banco de dados.'
+            });
+        }
+        res.status(201).json({
+            erro: false,
+            mensagem: 'Medico cadastrado com sucesso!',
+            id: resultado.insertId
+        });
+    });
+});
+
+// atualizar medico
+app.put('/api/medicos/:id', function(req, res){
+    var id = req.params.id;
+
+    // 1. Criamos arrays vazios para guardar os trechos de SQL e os valores correspondentes
+    var campos = [];
+    var valores = [];
+
+    // 2. Verificamos cada campo. Se ele foi enviado no body, adicionamos na lista
+    if (req.body.nome !== undefined) {
+        campos.push("nome = ?");
+        valores.push(req.body.nome);
+    }
+    if (req.body.crm !== undefined) {
+        campos.push("crm = ?");
+        valores.push(req.body.crm);
+    }
+    if (req.body.especialidade_id !== undefined) {
+        campos.push("especialidade_id = ?");
+        valores.push(req.body.especialidade_id);
+    }
+    if (req.body.telefone !== undefined) {
+        campos.push("telefone = ?");
+        valores.push(req.body.telefone);
+    }
+    if (req.body.email !== undefined) {
+        campos.push("email = ?");
+        valores.push(req.body.email);
+    }
+    if (req.body.status !== undefined) {
+        campos.push("status = ?");
+        valores.push(req.body.status);
+    }
+
+    // 3. Validação: Se o array estiver vazio, significa que o usuário não enviou nenhum dado para atualizar
+    if (campos.length === 0) {
+        return res.status(400).json({
+            erro: true,
+            mensagem: 'Nenhum campo válido foi informado para atualização.'
+        });
+    }
+
+    var sql = "UPDATE medicos SET " + campos.join(", ") + " WHERE id = ?";
+    valores.push(id); // Adiciona o ID no final do array para o "WHERE id = ?"
+
+    conexao.query(sql, valores, function(erro, resultado){
+        if(erro) {
+            console.log('Erro ao atualizar medico:', erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao atualizar medico.'
+            });
+        }
+
+        if(resultado.affectedRows === 0) {
+            return res.status(404).json({
+                erro: true,
+                mensagem: "Medico não encontrado."
+            });
+        }
+
+        res.json({
+            erro: false,
+            mensagem: 'Medico atualizado com sucesso!'
+        });
+    });
+});
+
+// deletar medico por ID
+app.delete('/api/medicos/:id', function(req, res){
+    var id = req.params.id;
+    var sql = "DELETE FROM medicos WHERE id = ?";
+    conexao.query(sql, [id], function(erro, resultado){
+        if(erro) {
+            console.log('Erro ao deletar medico:', erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao deletar medico.'
+            });
+        }
+
+        if(resultado.affectedRows === 0) {
+            return res.status(404).json({
+                erro: true,
+                mensagem: 'Medico não encontrado.'
+            });
+        }
+        res.json({
+            erro: false,
+            mensagem: 'Medico deletado com sucesso!'
+        });
+    });
+});
+
+// ===========================
+//  ENDPOINTS DE ESPECIALIDADES
+// ===========================
+// listar todas as especialidades
+app.get('/api/especialidades', function(req, res){
+    var sql = "SELECT * FROM especialidades ORDER BY nome";
+    conexao.query(sql, function(erro, resultados){
+        if(erro){
+            console.log('Erro ao buscar especialidades:', erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao buscar especialidades.'
+            });
+        }
+        res.json(resultados);
+    });
+});
+
+// buscar especialidade por ID
+app.get('/api/especialidades/:id', function(req, res){
+    var id = req.params.id;
+    var sql = "SELECT * FROM especialidades WHERE id = ?";
+    conexao.query(sql, [id], function(erro, resultados){
+        if(erro) {
+            console.log('Erro ao buscar especialidade:', erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao buscar especialidade.'
+            });
+        }
+
+        if(resultados.length === 0) {
+            return res.status(404).json({
+                erro: true,
+                mensagem: 'Especialidade não encontrada.'
+            });
+        }
+        res.json(resultados[0]);
+    });
+});
+
+// criar especialidade
+app.post('/api/especialidades', function(req, res){
+    var nome = req.body.nome;
+
+    if(!nome) {
+        return res.status(400).json({
+            erro: true,
+            mensagem: 'Preencha todos os campos.'
+        });
+    }
+
+    var sql = "INSERT INTO especialidades (nome) VALUES (?)";
+    var valores = [nome];
+    conexao.query(sql, valores, function(erro, resultado){
+        if(erro) {
+            console.log('Erro ao criar especialidade:', erro);
+            if(erro.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({
+                    erro: true,
+                    mensagem: 'Esta especialidade já está cadastrada.'
+                });
+            }
+            
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao criar especialidade.'
+            });
+        }
+
+        res.status(201).json({
+            erro: false,
+            mensagem: 'Especialidade criada com sucesso!',
+            id: resultado.insertId
+        });
+    });
+});
+
+// atualizar especialidade
+app.put('/api/especialidades/:id', function(req, res){
+    var id = req.params.id;
+    var nome = req.body.nome;
+
+    if(!nome) {
+        return res.status(400).json({
+            erro: true,
+            mensagem: 'Preencha todos os campos.'
+        });
+    }
+
+    var sql = "UPDATE especialidades SET nome = ? WHERE id = ?";
+    var valores = [nome, id];
+    conexao.query(sql, valores, function(erro, resultado){
+        if(erro) {
+            console.log('Erro ao atualizar especialidade:', erro);
+            return res.status(500).json({
+                erro: true,
+                mensagem: 'Erro ao atualizar especialidade.'
+            });
+        }
+
+        if(resultado.affectedRows === 0) {
+            return res.status(404).json({
+                erro: true,
+                mensagem: 'Especialidade não encontrada.'
+            });
+        }
+        res.json({
+            erro: false,
+            mensagem: 'Especialidade atualizada com sucesso!'
+        });
+    });
+});
+
+// excluir especialidade
+app.delete('/api/especialidades/:id', function(req, res){
+    var id = req.params.id;
+    var sql = "DELETE FROM especialidades WHERE id = ?";
+    conexao.query(sql, [id], function(erro, resultado){
+        if(erro) {
+            console.log('Erro ao excluir especialidade:', erro);
+            if(erro.code === 'ER_ROW_IS_REFERENCED_2' || erro.code === 'ER_ROW_IS_REFERENCED') {
+                return res.status(400).json({
+                    mensagem: 'Não é possível excluir esta especialidade pois existem médicos vinculados a ela.'
+                });
+            }
+            return res.status(500).json({
+                    erro: true,
+                    mensagem: 'Erro ao excluir especialidade.'
+            });
+        }
+
+        if(resultado.affectedRows === 0) {
+            return res.status(404).json({
+                    erro: true,
+                    mensagem: 'Especialidade não encontrada.'
+            });
+        }
+        res.json({
+            erro: false,
+            mensagem: 'Especialidade excluída com sucesso!'
+        });
     });
 });
 
