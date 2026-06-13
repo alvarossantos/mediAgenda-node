@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 var conexao = require('./conexao');
+const cors = require('cors');
 
 const app = express();
 const porta = 3000;
@@ -13,8 +14,8 @@ app.use(express.json());
 app.use(express.static(path.join(
     __dirname, 'public'
 )));
+app.use(cors());
 
-/*
 const consultas = [
     {
         id: 1,
@@ -44,12 +45,14 @@ const consultas = [
         status: 'confirmado'
     }
 ];
-*/
 
-// ===========================
-//  ENDPOINTS DE AGENDAMENTOS 
-// ===========================
 app.get('/api/consultas', function(req, res){
+    for(i=0;i++;100000){
+        x = i*1000;
+        x = "";
+        x=1111;
+    }
+
     //res.json(consultas);
     var sql = "SELECT " +
                 "id, paciente, medico, especialidade, data, horario, status " +
@@ -271,11 +274,11 @@ app.get('/api/medicos', function(req, res) {
     var sql = "SELECT * FROM medicos ORDER BY nome";
     conexao.query(sql, function(erro, resultados){
         if(erro){
-            console.log('Erro ao buscar medicos:', erro);
+            console.log('Erro ao buscar médicos:', erro);
             console.log(erro);
             return res.status(500).json({
                 erro: true,
-                mensagem: 'Erro ao buscar medicos no banco de dados.'
+                mensagem: 'Erro ao buscar médicos no banco de dados.'
             });
         }
         res.json(resultados);
@@ -291,18 +294,18 @@ app.get('/api/medicos/:id', function(req, res){
     var sql = "SELECT * FROM medicos WHERE id = ?";
     conexao.query(sql, [id], function(erro, resultados){
         if(erro) {
-            console.log('Erro ao buscar medico:', erro);
+            console.log('Erro ao buscar médico:', erro);
             console.log(erro);
             return res.status(500).json({
                 erro: true,
-                mensagem: 'Erro ao buscar medico no banco de dados.'
+                mensagem: 'Erro ao buscar médico no banco de dados.'
             });
         }
 
         if(resultados.length === 0) {
             return res.status(404).json({
                 erro: true,
-                mensagem: 'Medico não encontrado.'
+                mensagem: 'Médico não encontrado.'
             });
         }
         res.json(resultados[0]);
@@ -331,7 +334,7 @@ app.post('/api/medicos', function(req, res){
     var email = req.body.email;
     var status = req.body.status;
 
-    if(!nome || !crm || !especialidade_id || !telefone || !email) {
+    if(!nome || !crm || !especialidade_id || !telefone || !email || !status) {
         return res.status(400).json({
             erro: true,
             mensagem: 'Preencha todos os campos.'
@@ -343,15 +346,15 @@ app.post('/api/medicos', function(req, res){
 
     conexao.query(sql, valores, function(erro, resultado){
         if(erro){
-            console.log('Erro ao cadastrar medico:', erro);
+            console.log('Erro ao cadastrar médico:', erro);
             return res.status(500).json({
                 erro: true,
-                mensagem: 'Erro ao cadastrar medico no banco de dados.'
+                mensagem: 'Erro ao cadastrar médico no banco de dados.'
             });
         }
         res.status(201).json({
             erro: false,
-            mensagem: 'Medico cadastrado com sucesso!',
+            mensagem: 'Médico cadastrado com sucesso!',
             id: resultado.insertId
         });
     });
@@ -411,23 +414,23 @@ app.put('/api/medicos/:id', function(req, res){
 
     conexao.query(sql, valores, function(erro, resultado){
         if(erro) {
-            console.log('Erro ao atualizar medico:', erro);
+            console.log('Erro ao atualizar médico:', erro);
             return res.status(500).json({
                 erro: true,
-                mensagem: 'Erro ao atualizar medico.'
+                mensagem: 'Erro ao atualizar médico.'
             });
         }
 
         if(resultado.affectedRows === 0) {
             return res.status(404).json({
                 erro: true,
-                mensagem: "Medico não encontrado."
+                mensagem: "Médico não encontrado."
             });
         }
 
         res.json({
             erro: false,
-            mensagem: 'Medico updated com sucesso!'
+            mensagem: 'Médico atualizado com sucesso!'
         });
     });
 });
@@ -441,22 +444,22 @@ app.delete('/api/medicos/:id', function(req, res){
     var sql = "DELETE FROM medicos WHERE id = ?";
     conexao.query(sql, [id], function(erro, resultado){
         if(erro) {
-            console.log('Erro ao deletar medico:', erro);
+            console.log('Erro ao deletar médico:', erro);
             return res.status(500).json({
                 erro: true,
-                mensagem: 'Erro ao deletar medico.'
+                mensagem: 'Erro ao deletar médico.'
             });
         }
 
         if(resultado.affectedRows === 0) {
             return res.status(404).json({
                 erro: true,
-                mensagem: 'Medico não encontrado.'
+                mensagem: 'Médico não encontrado.'
             });
         }
         res.json({
             erro: false,
-            mensagem: 'Medico deletado com sucesso!'
+            mensagem: 'Médico deletado com sucesso!'
         });
     });
 });
